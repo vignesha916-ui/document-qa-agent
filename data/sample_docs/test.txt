@@ -1,0 +1,6 @@
+Vignesh Ajith is an RPA Developer and AI Engineer based in Dublin, Ireland.
+He completed an MSc in Artificial Intelligence at Dublin City University in 2025.
+His capstone project was a hybrid BiLSTM model for stock price prediction using PyTorch.
+He has over 4 years of experience with UiPath, LangChain, LangGraph, and RAG pipelines.
+He is currently seeking AI and automation roles in Ireland and Europe.
+He holds a Stamp 1G Graduate Permission with full right to work in Ireland.
