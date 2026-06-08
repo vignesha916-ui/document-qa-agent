@@ -9,7 +9,9 @@ from app.models.schemas import (
     IngestResponse,
     QueryRequest,
     QueryResponse,
-    HealthResponse
+    HealthResponse,
+    ClassifyRequest,
+    ClassifyResponse
 )
 from app.tools.embedder import ingest_document, is_index_loaded
 from app.agent import run_agent
@@ -105,4 +107,56 @@ def ask_question(request: QueryRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Agent error: {str(e)}"
+        )
+
+@app.post("/classify", response_model=ClassifyResponse)
+def classify_document(request: ClassifyRequest):
+    """
+    Classify and extract key information from document text.
+    Designed for UiPath integration — accepts extracted text,
+    returns structured JSON for bot consumption.
+    """
+    if not is_index_loaded():
+        raise HTTPException(
+            status_code=400,
+            detail="No document ingested. POST to /ingest first."
+        )
+
+    try:
+        # Ask three structured questions via the agent
+        doc_type_result = run_agent(
+            "What type of document is this? "
+            "Reply with one of: Invoice, Contract, Report, "
+            "Email, Form, Letter, or Other."
+        )
+
+        summary_result = run_agent(
+            "Summarise this document in exactly two sentences."
+        )
+
+        fields_result = run_agent(
+            "Extract key fields as a list. Include: "
+            "dates, amounts, parties, reference numbers, "
+            "and any other important values."
+        )
+
+        # Determine if human review needed
+        avg_confidence = (
+            doc_type_result["confidence"] +
+            summary_result["confidence"] +
+            fields_result["confidence"]
+        ) / 3
+
+        return ClassifyResponse(
+            document_type=doc_type_result["answer"],
+            summary=summary_result["answer"],
+            key_fields={"extracted": fields_result["answer"]},
+            confidence=round(avg_confidence, 4),
+            requires_human_review=avg_confidence < 0.4
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Classification error: {str(e)}"
         )

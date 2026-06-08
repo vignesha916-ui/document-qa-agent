@@ -47,3 +47,19 @@ class HealthResponse(BaseModel):
     status: str
     version: str
     index_loaded: bool
+class ClassifyRequest(BaseModel):
+    """Request model for document classification."""
+    text: str = Field(
+        ...,
+        min_length=10,
+        max_length=5000,
+        description="Extracted document text to classify"
+    )
+
+class ClassifyResponse(BaseModel):
+    """Structured classification response for UiPath consumption."""
+    document_type: str
+    summary: str
+    key_fields: dict
+    confidence: float
+    requires_human_review: bool
